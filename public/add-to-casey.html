@@ -83,7 +83,7 @@ function caseyAdd() {
     if (parts.length < 2 && /可爱/.test(title)) parts.unshift("Cute");
     return parts.length ? parts.join(" ") + " Case" : "Cute Phone Case";
   };
-  const pathOf = (url) => (url || "").replace(/^https?:\/\/img[-0-9]*\.pddpic\.com\//, "").split("?")[0];
+  const pathOf = (url) => (url || "").replace(/^(https?:\/\/)?img[-0-9]*\.pddpic\.com\//, "").split("?")[0];
   const galleryIn = (doc) => [
     ...new Set(
       (doc.documentElement.innerHTML.match(/img[-0-9]*\.pddpic\.com\/(?:mms-goods-image|mms-material-img|open-gw)\/[^"'?\s\\)&]+/g) || []).map(pathOf)
