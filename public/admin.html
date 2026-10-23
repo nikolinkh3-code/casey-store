@@ -71,6 +71,8 @@
     <button class="btn ghost small hidden" id="logout">লগ আউট</button>
   </header>
 
+  <p class="muted" id="loading">লোড হচ্ছে…</p>
+
   <!-- Login -->
   <section class="card hidden" id="login-view">
     <h2>অ্যাডমিন লগইন</h2>
@@ -415,6 +417,8 @@ async function loadList() {
     return;
   } catch (e) {
     if (saved) store.clear();
+  } finally {
+    hide("loading");
   }
   if ($("setup-view").classList.contains("hidden")) show("login-view");
 })();
