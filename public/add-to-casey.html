@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Add to Casey</title>
+<style>
+  body { font: 16px/1.6 system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; color: #222; background: #faf8ff; }
+  a.btn { display: inline-block; padding: 12px 22px; background: #7c4dce; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600; }
+  li { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<h1>Add to Casey</h1>
+<p><b>1.</b> Drag this button to your browser's bookmarks bar:</p>
+<p><a class="btn" id="bookmarklet" href="#">Add to Casey</a></p>
+<p><b>2.</b> How to use it:</p>
+<ol>
+  <li>Open a phone case on <b>mobile.yangkeduo.com</b> (Pinduoduo).</li>
+  <li>Click the <b>Add to Casey</b> bookmark.</li>
+  <li>Tap the photos to use (one design, no text photos), type an English name, check the models.</li>
+  <li>Click <b>Save</b>. A small window says "Saved to Casey ✓". The product shows on the site after a page refresh.</li>
+</ol>
+<p>To edit or delete a product, change its row in the "Casey Products" Google Sheet.</p>
+
+<script>
+// The bookmarklet: runs on a Pinduoduo product page (mobile.yangkeduo.com/goods.html?...).
+function caseyAdd() {
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwjU5rKMOdUTcCfu8xEsStjx3v40dMusu6nibeS2lg3NkDsQwT0gDbO6QC0NHsqnNv_/exec";
+  const KEY = "casey-b4eykz2v3a2o";
+  const MODELS = {
+    iPhone: "iPhone 12, iPhone 13, iPhone 14, iPhone 15, iPhone 16, iPhone 17, iPhone 16 Pro, iPhone 16 Pro Max, iPhone 17 Pro Max",
+    Samsung: "Galaxy S23 Ultra, Galaxy S24, Galaxy S24 Ultra, Galaxy S25, Galaxy S25 Ultra",
+    "Xiaomi / Redmi": "Redmi Note 13, Redmi Note 14, Redmi 13C, Xiaomi 14",
+    Realme: "Realme C55, Realme 11, Realme 12",
+    "Oppo / Vivo": "Oppo A78, Oppo Reno 11, Vivo Y36, Vivo V30",
+    Accessories: "",
+  };
+
+  if (!/goods/.test(location.href)) {
+    alert("Open a Pinduoduo product page first.");
+    return;
+  }
+  document.getElementById("casey-add")?.remove();
+
+  const html = document.documentElement.innerHTML;
+  const paths = [
+    ...new Set(
+      (html.match(/img[-0-9]*\.pddpic\.com\/(?:mms-goods-image|mms-material-img|open-gw)\/[^"'?\s\\)&]+/g) || []).map((s) =>
+        s.replace(/^img[-0-9]*\.pddpic\.com\//, "")
+      )
+    ),
+  ].slice(0, 16);
+  const text = document.body.innerText;
+  // The price is split over several lines on the page ("¥\n3\n.\n73"), so drop whitespace first.
+  // Some pages hide the decimals ("¥3.??"); assume the highest (3.99).
+  const pm = text.replace(/\s+/g, "").match(/¥(\d+)(?:\.(\d+|\?\?))?/) || [];
+  const yuan = pm[1] ? Number(pm[1]) + (pm[2] === "??" ? 0.99 : Number("0." + (pm[2] || "0"))) : 0;
+  const price = Math.max(350, Math.round((yuan * 20 + 181) / 10) * 10);
+  const title = text.split("\n").filter((l) => /壳|套/.test(l)).sort((a, b) => b.length - a.length)[0] || "";
+  const category = /三星|samsung|galaxy/i.test(title)
+    ? "Samsung"
+    : /小米|红米|redmi|xiaomi/i.test(title)
+    ? "Xiaomi / Redmi"
+    : /oppo|vivo/i.test(title)
+    ? "Oppo / Vivo"
+    : /realme|真我/i.test(title)
+    ? "Realme"
+    : "iPhone";
+
+  const box = document.createElement("div");
+  box.id = "casey-add";
+  box.style.cssText =
+    "position:fixed;inset:0;z-index:2147483647;background:#fff;overflow:auto;padding:12px;font:14px sans-serif;color:#222";
+  box.innerHTML =
+    '<b style="font-size:18px">Add to Casey</b> <small>(' + yuan + " yuan)</small>" +
+    '<p style="margin:6px 0;color:#666;font-size:12px">' + title + "</p>" +
+    '<p style="margin:6px 0">Tap the photos to use (one design only, no text/notice photos):</p>' +
+    '<div id="ca-imgs" style="display:flex;flex-wrap:wrap;gap:4px"></div>' +
+    '<label style="display:block;margin-top:10px">Name<br><input id="ca-name" style="width:100%;padding:6px" placeholder="e.g. Pink Bunny Case"></label>' +
+    '<label style="display:block;margin-top:6px">Category<br><select id="ca-cat" style="width:100%;padding:6px">' +
+    Object.keys(MODELS).map((c) => "<option" + (c === category ? " selected" : "") + ">" + c + "</option>").join("") +
+    "</select></label>" +
+    '<label style="display:block;margin-top:6px">Phone models (comma separated)<br><input id="ca-models" style="width:100%;padding:6px"></label>' +
+    '<label style="display:block;margin-top:6px">Price (৳)<br><input id="ca-price" type="number" style="width:100%;padding:6px" value="' + price + '"></label>' +
+    '<label style="display:block;margin-top:6px">Description<br><input id="ca-desc" style="width:100%;padding:6px" placeholder="Short description (optional)"></label>' +
+    '<label style="display:block;margin-top:6px"><input id="ca-avail" type="checkbox"> In stock (otherwise Pre-order)</label>' +
+    '<div style="margin-top:12px;display:flex;gap:8px"><button id="ca-save" style="flex:1;padding:10px;background:#7c4dce;color:#fff;border:0;border-radius:8px;font-size:16px">Save</button>' +
+    '<button id="ca-close" style="padding:10px;border:1px solid #ccc;background:#fff;border-radius:8px">Close</button></div>';
+  document.body.appendChild(box);
+
+  const $ = (id) => box.querySelector("#" + id);
+  const models = $("ca-models");
+  models.value = MODELS[category];
+  $("ca-cat").onchange = (e) => (models.value = MODELS[e.target.value]);
+
+  const chosen = [];
+  paths.forEach((p) => {
+    const img = document.createElement("img");
+    // Direct pddpic links don't load inside the page, the site's /img proxy does.
+    img.src = "https://casey-store.pages.dev/img/" + p;
+    img.style.cssText = "width:31%;max-width:150px;aspect-ratio:1;object-fit:cover;border:4px solid transparent;border-radius:6px";
+    img.onclick = () => {
+      const i = chosen.indexOf(p);
+      if (i === -1) chosen.push(p);
+      else chosen.splice(i, 1);
+      img.style.borderColor = i === -1 ? "#7c4dce" : "transparent";
+    };
+    $("ca-imgs").appendChild(img);
+  });
+
+  $("ca-close").onclick = () => box.remove();
+  $("ca-save").onclick = () => {
+    const name = $("ca-name").value.trim();
+    if (!name) return alert("Please type a name.");
+    if (!chosen.length) return alert("Please choose at least one photo.");
+    const data = {
+      name,
+      category: $("ca-cat").value,
+      price: Number($("ca-price").value) || price,
+      images: chosen.map((p) => "/img/" + p),
+      description: $("ca-desc").value.trim(),
+      available: $("ca-avail").checked,
+      models: models.value.split(",").map((s) => s.trim()).filter(Boolean),
+      source: location.origin + location.pathname + "?goods_id=" + new URLSearchParams(location.search).get("goods_id"),
+    };
+    window.open(SCRIPT_URL + "?key=" + KEY + "&data=" + encodeURIComponent(JSON.stringify(data)), "casey-save", "width=420,height=300");
+    box.remove();
+  };
+}
+
+document.getElementById("bookmarklet").href = "javascript:" + encodeURIComponent("(" + caseyAdd + ")()");
+</script>
+</body>
+</html>
