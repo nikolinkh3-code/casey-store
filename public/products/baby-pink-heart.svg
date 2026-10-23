@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+<rect width="800" height="1000" fill="#ffd6e6"/>
+<rect x="230" y="140" width="340" height="720" rx="60" fill="#ef7fa8"/>
+<rect x="262" y="172" width="120" height="150" rx="34" fill="#00000022"/>
+<circle cx="300" cy="215" r="24" fill="#2b2533"/><circle cx="345" cy="275" r="24" fill="#2b2533"/>
+<path d="M400 640 C250 520 280 400 360 410 C385 413 398 430 400 445 C402 430 415 413 440 410 C520 400 550 520 400 640Z" fill="#fff"/>
+<text x="400" y="930" text-anchor="middle" font-family="Arial" font-size="30" fill="#5e4f6e">SAMPLE · CASEY</text>
+</svg>
