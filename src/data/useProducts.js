@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import baseProducts from "./products";
 
-// Google Sheet > File > Share > Publish to web > CSV — paste that link here
-export const SHEET_CSV_URL = "";
+// "Casey Products" Google Sheet, served as CSV by its Apps Script web app (google-apps-script/Code.gs)
+export const SHEET_CSV_URL =
+  "https://script.google.com/macros/s/AKfycbwjU5rKMOdUTcCfu8xEsStjx3v40dMusu6nibeS2lg3NkDsQwT0gDbO6QC0NHsqnNv_/exec";
 
 function parseCSV(text) {
   const rows = [];
